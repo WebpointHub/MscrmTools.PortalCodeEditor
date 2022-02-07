@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.ServiceModel;
-using McTools.Xrm.Connection;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
@@ -47,16 +46,33 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
         #region Methods
 
-        public static List<EntityForm> GetItems(IOrganizationService service, ref bool isLegacyPortal)
+        public static List<EntityForm> GetItems(IOrganizationService service, Guid callingUserId, bool onlyRetrieveItemsModifiedByMe, ref bool isLegacyPortal)
         {
             try
             {
-                var records = service.RetrieveMultiple(new QueryExpression("adx_entityform")
+                DataCollection<Entity> records;
+                if (onlyRetrieveItemsModifiedByMe)
                 {
-                    ColumnSet = new ColumnSet("adx_name", "adx_registerstartupscript", "adx_websiteid"),
-                    Orders = { new OrderExpression("adx_name", OrderType.Ascending) }
-                }).Entities;
-
+                    records = service.RetrieveMultiple(new QueryExpression("adx_entityform")
+                    {
+                        ColumnSet = new ColumnSet("adx_name", "adx_registerstartupscript", "adx_websiteid"),
+                        Criteria = {
+                            Conditions = {
+                                new ConditionExpression("modifiedby", ConditionOperator.Equal, callingUserId)
+                            }
+                        },
+                        Orders = { new OrderExpression("adx_name", OrderType.Ascending) }
+                    }).Entities;
+                }
+                else
+                {
+                    records = service.RetrieveMultiple(new QueryExpression("adx_entityform")
+                    {
+                        ColumnSet = new ColumnSet("adx_name", "adx_registerstartupscript", "adx_websiteid"),
+                        Orders = { new OrderExpression("adx_name", OrderType.Ascending) }
+                    }).Entities;
+                }
+                
                 return records.Select(record => new EntityForm(record)).ToList();
             }
             catch (FaultException<OrganizationServiceFault> ex)
@@ -65,12 +81,29 @@ namespace MscrmTools.PortalCodeEditor.AppCode
                 {
                     isLegacyPortal = true;
 
-                    var records = service.RetrieveMultiple(new QueryExpression("adx_entityform")
+                    DataCollection<Entity> records;
+                    if (onlyRetrieveItemsModifiedByMe)
                     {
-                        ColumnSet = new ColumnSet("adx_name", "adx_registerstartupscript"),
-                        Orders = { new OrderExpression("adx_name", OrderType.Ascending) }
-                    }).Entities;
-
+                        records = service.RetrieveMultiple(new QueryExpression("adx_entityform")
+                        {
+                            ColumnSet = new ColumnSet("adx_name", "adx_registerstartupscript"),
+                            Criteria = {
+                                Conditions = {
+                                    new ConditionExpression("modifiedby", ConditionOperator.Equal, callingUserId)
+                                }
+                            },
+                            Orders = { new OrderExpression("adx_name", OrderType.Ascending) }
+                        }).Entities;
+                    } 
+                    else
+                    {
+                        records = service.RetrieveMultiple(new QueryExpression("adx_entityform")
+                        {
+                            ColumnSet = new ColumnSet("adx_name", "adx_registerstartupscript"),
+                            Orders = { new OrderExpression("adx_name", OrderType.Ascending) }
+                        }).Entities;
+                    }
+                        
                     return records.Select(record => new EntityForm(record)).ToList();
                 }
 
@@ -111,11 +144,11 @@ namespace MscrmTools.PortalCodeEditor.AppCode
         /// Write the contents of the code object to disk
         /// </summary>
         /// <param name="path"></param>
-        public override void WriteContent(string path)
+        public override void WriteContent(string path, bool replaceExisting)
         {
             var filePath = Path.Combine(path, "JavaScript.js");
 
-            JavaScript?.WriteCodeItem(filePath);
+            JavaScript?.WriteCodeItem(filePath, replaceExisting);
         }
 
         #endregion Methods

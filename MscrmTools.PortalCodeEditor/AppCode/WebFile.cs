@@ -1,11 +1,11 @@
-﻿using Microsoft.Xrm.Sdk;
-using Microsoft.Xrm.Sdk.Messages;
-using Microsoft.Xrm.Sdk.Query;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Messages;
+using Microsoft.Xrm.Sdk.Query;
 
 namespace MscrmTools.PortalCodeEditor.AppCode
 {
@@ -50,43 +50,87 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
         #region Methods
 
-        public static List<WebFile> GetItems(IOrganizationService service)
+        public static List<WebFile> GetItems(IOrganizationService service, Guid callingUserId, bool onlyRetrieveItemsModifiedByMe)
         {
-            var records = service.RetrieveMultiple(new QueryExpression("annotation")
+            DataCollection<Entity> records;
+            if (onlyRetrieveItemsModifiedByMe)
             {
-                ColumnSet = new ColumnSet("filename", "documentbody", "objectid", "modifiedon"),
-                LinkEntities =
+                records = service.RetrieveMultiple(new QueryExpression("annotation")
                 {
-                    new LinkEntity
+                    ColumnSet = new ColumnSet("filename", "documentbody", "objectid", "modifiedon"),
+                    LinkEntities =
                     {
-                        EntityAlias = "webfile",
-                        LinkFromEntityName = "annotation",
-                        LinkFromAttributeName = "objectid",
-                        LinkToAttributeName = "adx_webfileid",
-                        LinkToEntityName = "adx_webfile",
-                        Columns = new ColumnSet("adx_websiteid", "adx_name"),
-                        Orders = {new OrderExpression("adx_name", OrderType.Ascending)}
-                    }
-                },
-                Criteria = new FilterExpression
-                {
-                    Conditions =
-                    {
-                        new ConditionExpression("documentbody", ConditionOperator.NotNull),
-                    },
-                    Filters =
-                    {
-                        new FilterExpression(LogicalOperator.Or)
+                        new LinkEntity
                         {
-                            Conditions =
+                            EntityAlias = "webfile",
+                            LinkFromEntityName = "annotation",
+                            LinkFromAttributeName = "objectid",
+                            LinkToAttributeName = "adx_webfileid",
+                            LinkToEntityName = "adx_webfile",
+                            Columns = new ColumnSet("adx_websiteid", "adx_name"),
+                            Orders = {new OrderExpression("adx_name", OrderType.Ascending)}
+                        }
+                    },
+                    Criteria = new FilterExpression
+                    {
+                        Conditions =
+                        {
+                            new ConditionExpression("documentbody", ConditionOperator.NotNull),
+                            new ConditionExpression("modifiedby", ConditionOperator.Equal, callingUserId)
+                        },
+                        Filters =
+                        {
+                            new FilterExpression(LogicalOperator.Or)
                             {
-                                new ConditionExpression("filename", ConditionOperator.EndsWith, "js"),
-                                new ConditionExpression("filename", ConditionOperator.EndsWith, "css")
+                                Conditions =
+                                {
+                                    new ConditionExpression("filename", ConditionOperator.EndsWith, "js"),
+                                    new ConditionExpression("filename", ConditionOperator.EndsWith, "css")
+                                }
                             }
                         }
                     }
-                }
-            }).Entities;
+                }).Entities;
+            }
+            else
+            {
+                records = service.RetrieveMultiple(new QueryExpression("annotation")
+                {
+                    ColumnSet = new ColumnSet("filename", "documentbody", "objectid", "modifiedon"),
+                    LinkEntities =
+                    {
+                        new LinkEntity
+                        {
+                            EntityAlias = "webfile",
+                            LinkFromEntityName = "annotation",
+                            LinkFromAttributeName = "objectid",
+                            LinkToAttributeName = "adx_webfileid",
+                            LinkToEntityName = "adx_webfile",
+                            Columns = new ColumnSet("adx_websiteid", "adx_name"),
+                            Orders = {new OrderExpression("adx_name", OrderType.Ascending)}
+                        }
+                    },
+                    Criteria = new FilterExpression
+                    {
+                        Conditions =
+                        {
+                            new ConditionExpression("documentbody", ConditionOperator.NotNull),
+                        },
+                            Filters =
+                        {
+                            new FilterExpression(LogicalOperator.Or)
+                            {
+                                Conditions =
+                                {
+                                    new ConditionExpression("filename", ConditionOperator.EndsWith, "js"),
+                                    new ConditionExpression("filename", ConditionOperator.EndsWith, "css")
+                                }
+                            }
+                        }
+                    }
+                }).Entities;
+            }
+            
 
             return records.Select(record => new WebFile(record))
                 .ToList()
@@ -147,11 +191,11 @@ namespace MscrmTools.PortalCodeEditor.AppCode
         /// Write the contents of the code object to disk
         /// </summary>
         /// <param name="path"></param>
-        public override void WriteContent(string path)
+        public override void WriteContent(string path, bool replaceExisting)
         {
             var filePath = Path.Combine(path, Name);
 
-            Code?.WriteCodeItem(filePath);
+            Code?.WriteCodeItem(filePath, replaceExisting);
         }
 
         #endregion Methods

@@ -4,9 +4,19 @@ namespace MscrmTools.PortalCodeEditor.Forms
 {
     public partial class ExportOptions : Form
     {
-        public ExportOptions()
+        private Settings defaultSettings;
+
+        public ExportOptions(Settings settings)
         {
             InitializeComponent();
+
+            defaultSettings = settings;
+
+            //set default settings for export
+            ExportFolder = settings.DefaultExportLocation;
+            chkOnlyExportItemsModifiedByMe.Checked = settings.OnlyExportItemsModifiedByMe;
+            chkDoNotPackageItemsInWebsiteFolder.Checked = settings.DoNotPackageExportInWebsiteFolder;
+            chkReplaceExistingFiles.Checked = settings.ReplaceExistingFiles;
         }
 
         public bool ClearFolderBeforeExport { get => chkClearItems.Checked; set => chkClearItems.Checked = value; }
@@ -22,6 +32,9 @@ namespace MscrmTools.PortalCodeEditor.Forms
             }
         }
 
+        public bool OnlyExportItemsModifiedByMe { get => chkOnlyExportItemsModifiedByMe.Checked; }
+        public bool DoNotPackageItemsInWebsiteFolder { get => chkDoNotPackageItemsInWebsiteFolder.Checked; }
+        public bool ReplaceExistingFiles { get => chkReplaceExistingFiles.Checked; }
         public bool SearchContents { get => chkSearchInContent.Checked; set => chkSearchInContent.Checked = value; }
         public string SearchText { get => txtSearch.Text; set => txtSearch.Text = value; }
 

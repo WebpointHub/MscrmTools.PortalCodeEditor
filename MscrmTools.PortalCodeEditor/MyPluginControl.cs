@@ -1,10 +1,4 @@
-﻿using McTools.Xrm.Connection;
-using Microsoft.Xrm.Sdk;
-using Microsoft.Xrm.Sdk.Query;
-using MscrmTools.PortalCodeEditor.AppCode;
-using MscrmTools.PortalCodeEditor.AppCode.EventArgs;
-using MscrmTools.PortalCodeEditor.Forms;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -12,6 +6,12 @@ using System.Linq;
 using System.ServiceModel;
 using System.Text;
 using System.Windows.Forms;
+using McTools.Xrm.Connection;
+using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Query;
+using MscrmTools.PortalCodeEditor.AppCode;
+using MscrmTools.PortalCodeEditor.AppCode.EventArgs;
+using MscrmTools.PortalCodeEditor.Forms;
 using WeifenLuo.WinFormsUI.Docking;
 using XrmToolBox.Extensibility;
 using XrmToolBox.Extensibility.Interfaces;
@@ -142,14 +142,14 @@ namespace MscrmTools.PortalCodeEditor
         #region Main menu events
 
         private void LoadItems()
-        {
+        {            
             ctvf.Enabled = false;
             WorkAsync(new WorkAsyncInfo
             {
                 Message = "Loading portal items...",
                 Work = (bw, e) =>
                 {
-                    LoadPortalItems(bw, isLegacyPortal);
+                    LoadPortalItems(bw, false, isLegacyPortal);
                 },
                 ProgressChanged = e =>
                 {
@@ -197,23 +197,24 @@ namespace MscrmTools.PortalCodeEditor
         /// Helper method for loading the portal items
         /// </summary>
         /// <param name="bw"></param>
-        private void LoadPortalItems(BackgroundWorker bw, bool isLegacyPortal)
+        private void LoadPortalItems(BackgroundWorker bw, bool onlyRetrieveItemsModifiedByMe, bool isLegacyPortal)
         {
+            
             portalItems = new List<EditablePortalItem>();
             bw.ReportProgress(0, "Loading Web pages...");
-            portalItems.AddRange(WebPage.GetItems(Service));
+            portalItems.AddRange(WebPage.GetItems(Service, ConnectionDetail.ServiceClient.GetMyCrmUserId(), onlyRetrieveItemsModifiedByMe));
             bw.ReportProgress(0, "Loading Entity forms...");
-            portalItems.AddRange(EntityForm.GetItems(Service, ref isLegacyPortal));
+            portalItems.AddRange(EntityForm.GetItems(Service, ConnectionDetail.ServiceClient.GetMyCrmUserId(), onlyRetrieveItemsModifiedByMe, ref isLegacyPortal));
             bw.ReportProgress(0, "Loading Entity lists...");
-            portalItems.AddRange(EntityList.GetItems(Service, ref isLegacyPortal));
+            portalItems.AddRange(EntityList.GetItems(Service, ConnectionDetail.ServiceClient.GetMyCrmUserId(), onlyRetrieveItemsModifiedByMe, ref isLegacyPortal));
             bw.ReportProgress(0, "Loading Web templates...");
-            portalItems.AddRange(WebTemplate.GetItems(Service, ref isLegacyPortal));
+            portalItems.AddRange(WebTemplate.GetItems(Service, ConnectionDetail.ServiceClient.GetMyCrmUserId(), onlyRetrieveItemsModifiedByMe, ref isLegacyPortal));
             bw.ReportProgress(0, "Loading Web files...");
-            portalItems.AddRange(WebFile.GetItems(Service));
+            portalItems.AddRange(WebFile.GetItems(Service, ConnectionDetail.ServiceClient.GetMyCrmUserId(), onlyRetrieveItemsModifiedByMe));
             bw.ReportProgress(0, "Loading Web form steps...");
-            portalItems.AddRange(WebFormStep.GetItems(Service));
+            portalItems.AddRange(WebFormStep.GetItems(Service, ConnectionDetail.ServiceClient.GetMyCrmUserId(), onlyRetrieveItemsModifiedByMe));
             bw.ReportProgress(0, "Loading Content Snippets...");
-            portalItems.AddRange(ContentSnippet.GetItems(Service, ref isLegacyPortal));
+            portalItems.AddRange(ContentSnippet.GetItems(Service, ConnectionDetail.ServiceClient.GetMyCrmUserId(), onlyRetrieveItemsModifiedByMe, ref isLegacyPortal));
             bw.ReportProgress(0, "Loading Publishing States...");
             ctvf.PublishingStates = Service.RetrieveMultiple(new QueryExpression("adx_publishingstate")
             {
@@ -496,7 +497,9 @@ namespace MscrmTools.PortalCodeEditor
         private void Export(List<EditablePortalItem> portalItems, string exportFolder, bool isLegacyPortal,
             string searchText = null,
             bool searchInContent = true,
-            bool clearFolder = false)
+            bool clearFolder = false,            
+            bool doNotPackageItemsInWebsiteFolder = false,
+            bool replaceExistingFiles = false)
         {
             // preset the filtered list to the current list of items
             var filteredItems = portalItems;
@@ -545,7 +548,11 @@ namespace MscrmTools.PortalCodeEditor
                 // build current folder path starting with the website, appended to the selected folder
                 var websiteName = websiteReference.Id == Guid.Empty ? "(Not website related)" : websiteReference.Name;
                 websiteName = EditablePortalItem.EscapeForFileName(websiteName);
-                currentPath = Path.Combine(exportFolder, websiteName);
+                
+                if (doNotPackageItemsInWebsiteFolder)
+                    currentPath = exportFolder;
+                else
+                    currentPath = Path.Combine(exportFolder, websiteName);
 
                 // add a new structure to track names for this website
                 if (!websiteNameList.ContainsKey(websiteReference.Id))
@@ -577,7 +584,7 @@ namespace MscrmTools.PortalCodeEditor
                     currentPath = AppendToPath(currentPath, WebPage.NODENAME);
 
                     if (page.IsRoot || page.ParentPageId == Guid.Empty)
-                    {
+                    {                        
                         var name = GetItemUniqueName(nameList[WebPage.NODENAME], page, page.PartialUrl);
                         if (name == null) continue;
 
@@ -587,7 +594,7 @@ namespace MscrmTools.PortalCodeEditor
                         if (isLegacyPortal)
                         {
                             // path to JS and CSS file only
-                            page.WriteContent(currentPath);
+                            page.WriteContent(currentPath, replaceExistingFiles);
                         }
                     }
                     else
@@ -601,7 +608,7 @@ namespace MscrmTools.PortalCodeEditor
                         {
                             continue;
                         }
-                        var name = GetItemUniqueName(nameList[WebPage.NODENAME], parent, page.PartialUrl);
+                        var name = GetItemUniqueName(nameList[WebPage.NODENAME], parent, page.PartialUrl, replaceExistingFiles);
                         if (name == null) continue;
 
                         // new path for website and the language
@@ -609,7 +616,7 @@ namespace MscrmTools.PortalCodeEditor
                         currentPath = AppendToPath(currentPath, page.Language);
 
                         // path to JS and CSS file only
-                        page.WriteContent(currentPath);
+                        page.WriteContent(currentPath, replaceExistingFiles);
                     }
                 }
                 else if (item is EntityForm form)
@@ -621,7 +628,7 @@ namespace MscrmTools.PortalCodeEditor
                     currentPath = AppendToPath(currentPath, EntityForm.NODENAME);
                     currentPath = AppendToPath(currentPath, name);
 
-                    form.WriteContent(currentPath);
+                    form.WriteContent(currentPath, replaceExistingFiles);
                 }
                 else if (item is EntityList list)
                 {
@@ -632,7 +639,7 @@ namespace MscrmTools.PortalCodeEditor
                     currentPath = AppendToPath(currentPath, EntityList.NODENAME);
                     currentPath = AppendToPath(currentPath, name);
 
-                    list.WriteContent(currentPath);
+                    list.WriteContent(currentPath, replaceExistingFiles);
                 }
                 else if (item is WebTemplate template)
                 {
@@ -643,7 +650,7 @@ namespace MscrmTools.PortalCodeEditor
                     currentPath = AppendToPath(currentPath, WebTemplate.NODENAME);
                     currentPath = AppendToPath(currentPath, name);
 
-                    template.WriteContent(currentPath);
+                    template.WriteContent(currentPath, replaceExistingFiles);
                 }
                 else if (item is WebFile file)
                 {
@@ -653,7 +660,7 @@ namespace MscrmTools.PortalCodeEditor
                     currentPath = AppendToPath(currentPath, WebFile.NODENAME);
                     currentPath = Path.Combine(currentPath, file.Name);
 
-                    file.WriteContent(currentPath);
+                    file.WriteContent(currentPath, replaceExistingFiles);
                 }
                 else if (item is WebFormStep wfStep)
                 {
@@ -673,7 +680,7 @@ namespace MscrmTools.PortalCodeEditor
 
                     currentPath = AppendToPath(currentPath, name);
 
-                    wfStep.WriteContent(currentPath);
+                    wfStep.WriteContent(currentPath, replaceExistingFiles);
                 }
                 else if (item is ContentSnippet snippet)
                 {
@@ -684,7 +691,7 @@ namespace MscrmTools.PortalCodeEditor
                     currentPath = AppendToPath(currentPath, ContentSnippet.NODENAME);
                     currentPath = AppendToPath(currentPath, name);
 
-                    snippet.WriteContent(currentPath);
+                    snippet.WriteContent(currentPath, replaceExistingFiles);
                 }
                 else
                 {
@@ -700,7 +707,7 @@ namespace MscrmTools.PortalCodeEditor
         /// <param name="newItem"></param>
         /// <param name="appendTo"></param>
         /// <returns></returns>
-        private string GetItemUniqueName(Dictionary<Guid, string> nameList, EditablePortalItem newItem, string appendTo = null)
+        private string GetItemUniqueName(Dictionary<Guid, string> nameList, EditablePortalItem newItem, string appendTo = null, bool replaceExisting = false)
         {
             // if the ID is already in the list, just return it
             if (nameList.ContainsKey(newItem.Id))
@@ -720,16 +727,23 @@ namespace MscrmTools.PortalCodeEditor
                 newName = EditablePortalItem.EscapeForFileName(newName);
                 if (newName == null) return null;
 
-                var origName = newName;
-                var counter = 0;
-                while (nameList.Where(n => n.Value == newName).ToList().Count > 0)
+                if (replaceExisting)
                 {
-                    counter++;
-                    newName = $"{origName} ({counter})";
-                }
-                // add to the list for the next round
-                nameList.Add(newItem.Id, newName);
-                return newName;
+                    return newName;
+                } 
+                else
+                {
+                    var origName = newName;
+                    var counter = 0;
+                    while (nameList.Where(n => n.Value == newName).ToList().Count > 0)
+                    {
+                        counter++;
+                        newName = $"{origName} ({counter})";
+                    }
+                    // add to the list for the next round
+                    nameList.Add(newItem.Id, newName);
+                    return newName;
+                }                
             }
         }
 
@@ -756,7 +770,7 @@ namespace MscrmTools.PortalCodeEditor
         private void LoadItemsForExport()
         {
             // pull up the export options dialog for folder, search, etc.
-            var expOptions = new ExportOptions();
+            var expOptions = new ExportOptions(mySettings);
             var result = expOptions.ShowDialog();
 
             if (result != DialogResult.OK)
@@ -772,7 +786,7 @@ namespace MscrmTools.PortalCodeEditor
                 Work = (bw, e) =>
                 {
                     // load all the portal content again, just in case changes have been made
-                    LoadPortalItems(bw, isLegacyPortal);
+                    LoadPortalItems(bw, expOptions.OnlyExportItemsModifiedByMe, isLegacyPortal);
                 },
                 ProgressChanged = e =>
                 {
@@ -789,7 +803,9 @@ namespace MscrmTools.PortalCodeEditor
                         Export(portalItems, expOptions.ExportFolder, isLegacyPortal,
                             expOptions.SearchText,
                             expOptions.SearchContents,
-                            expOptions.ClearFolderBeforeExport);
+                            expOptions.ClearFolderBeforeExport,
+                            expOptions.DoNotPackageItemsInWebsiteFolder,
+                            expOptions.ReplaceExistingFiles);
                     }
 
                     ctvf.Enabled = true;

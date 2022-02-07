@@ -45,5 +45,9 @@ namespace MscrmTools.PortalCodeEditor
 
         public bool ObfuscateJavascript { get; set; }
         public bool RemoveCssComments { get; set; }
+        public bool DoNotPackageExportInWebsiteFolder { get; set; }
+        public bool OnlyExportItemsModifiedByMe { get; set; }
+        public bool ReplaceExistingFiles { get; set; }
+        public string DefaultExportLocation { get; set; }
     }
 }

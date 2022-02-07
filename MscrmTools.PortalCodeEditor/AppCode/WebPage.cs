@@ -1,11 +1,11 @@
-﻿using Microsoft.Xrm.Sdk;
-using Microsoft.Xrm.Sdk.Messages;
-using Microsoft.Xrm.Sdk.Query;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.ServiceModel;
+using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Messages;
+using Microsoft.Xrm.Sdk.Query;
 
 namespace MscrmTools.PortalCodeEditor.AppCode
 {
@@ -66,28 +66,63 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
         #region Methods
 
-        public static List<WebPage> GetItems(IOrganizationService service)
+        public static List<WebPage> GetItems(IOrganizationService service, Guid callingUserId, bool onlyRetrieveItemsModifiedByMe)
         {
             try
             {
-                var records = service.RetrieveMultiple(new QueryExpression("adx_webpage")
+                DataCollection<Entity> records;
+                if (onlyRetrieveItemsModifiedByMe)
                 {
-                    ColumnSet = new ColumnSet("adx_name", "adx_customjavascript", "adx_customcss", "adx_websiteid", "adx_webpagelanguageid", "adx_rootwebpageid", "adx_isroot", "adx_partialurl", "adx_copy"),
-                    Orders = { new OrderExpression("adx_isroot", OrderType.Descending), new OrderExpression("adx_name", OrderType.Ascending) }
-                }).Entities;
+                    records = service.RetrieveMultiple(new QueryExpression("adx_webpage")
+                    {
+                        ColumnSet = new ColumnSet("adx_name", "adx_customjavascript", "adx_customcss", "adx_websiteid", "adx_webpagelanguageid", "adx_rootwebpageid", "adx_isroot", "adx_partialurl", "adx_copy"),
+                        Criteria = {
+                            Conditions = {
+                                new ConditionExpression("modifiedby", ConditionOperator.Equal, callingUserId)                                
+                            }
+                        },
+                        Orders = { new OrderExpression("adx_isroot", OrderType.Descending), new OrderExpression("adx_name", OrderType.Ascending) }
+                    }).Entities;
+                } 
+                else
+                {
+                    records = service.RetrieveMultiple(new QueryExpression("adx_webpage")
+                    {
+                        ColumnSet = new ColumnSet("adx_name", "adx_customjavascript", "adx_customcss", "adx_websiteid", "adx_webpagelanguageid", "adx_rootwebpageid", "adx_isroot", "adx_partialurl", "adx_copy"),
+                        Orders = { new OrderExpression("adx_isroot", OrderType.Descending), new OrderExpression("adx_name", OrderType.Ascending) }
+                    }).Entities;
+                }
+                
 
                 return records.Select(record => new WebPage(record, false)).ToList();
             }
             catch (FaultException<OrganizationServiceFault> ex)
-            {
+            {                
                 if (ex.Detail.ErrorCode == -2147217149)
                 {
-                    var records = service.RetrieveMultiple(new QueryExpression("adx_webpage")
+                    DataCollection<Entity> records;
+                    if (onlyRetrieveItemsModifiedByMe)
                     {
-                        ColumnSet = new ColumnSet("adx_name", "adx_customjavascript", "adx_customcss", "adx_websiteid", "adx_partialurl"),
-                        Orders = { new OrderExpression("adx_name", OrderType.Ascending) }
-                    }).Entities;
-
+                        records = service.RetrieveMultiple(new QueryExpression("adx_webpage")
+                        {
+                            ColumnSet = new ColumnSet("adx_name", "adx_customjavascript", "adx_customcss", "adx_websiteid", "adx_partialurl"),
+                            Criteria = {
+                                Conditions = {
+                                    new ConditionExpression("modifiedby", ConditionOperator.Equal, callingUserId)
+                                }
+                            },
+                            Orders = { new OrderExpression("adx_name", OrderType.Ascending) }
+                        }).Entities;
+                    }
+                    else
+                    {
+                        records = service.RetrieveMultiple(new QueryExpression("adx_webpage")
+                        {
+                            ColumnSet = new ColumnSet("adx_name", "adx_customjavascript", "adx_customcss", "adx_websiteid", "adx_partialurl"),
+                            Orders = { new OrderExpression("adx_name", OrderType.Ascending) }
+                        }).Entities;
+                    }
+                    
                     return records.Select(record => new WebPage(record, true)).ToList();
                 }
                 throw;
@@ -135,16 +170,16 @@ namespace MscrmTools.PortalCodeEditor.AppCode
         /// Write the contents of the code object to disk
         /// </summary>
         /// <param name="path"></param>
-        public override void WriteContent(string path)
-        {
+        public override void WriteContent(string path, bool replaceExisting)
+        {                        
             var filePath = Path.Combine(path, "Content.html");
-            Copy?.WriteCodeItem(filePath);
+            Copy?.WriteCodeItem(filePath, replaceExisting);
 
             filePath = Path.Combine(path, "JavaScript.js");
-            JavaScript?.WriteCodeItem(filePath);
+            JavaScript?.WriteCodeItem(filePath, replaceExisting);
 
             filePath = Path.Combine(path, "Style.css");
-            Style?.WriteCodeItem(filePath);
+            Style?.WriteCodeItem(filePath, replaceExisting);
         }
 
         #endregion Methods

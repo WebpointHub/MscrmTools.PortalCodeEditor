@@ -1,11 +1,11 @@
-﻿using Microsoft.Xrm.Sdk;
-using Microsoft.Xrm.Sdk.Messages;
-using Microsoft.Xrm.Sdk.Query;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.ServiceModel;
+using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Messages;
+using Microsoft.Xrm.Sdk.Query;
 
 namespace MscrmTools.PortalCodeEditor.AppCode
 {
@@ -52,40 +52,86 @@ namespace MscrmTools.PortalCodeEditor.AppCode
 
         #region Methods
 
-        public static List<WebFormStep> GetItems(IOrganizationService service)
+        public static List<WebFormStep> GetItems(IOrganizationService service, Guid callingUserId, bool onlyRetrieveItemsModifiedByMe)
         {
             try
             {
-                var records = service.RetrieveMultiple(new QueryExpression("adx_webformstep")
+                DataCollection<Entity> records;
+                if (onlyRetrieveItemsModifiedByMe)
                 {
-                    ColumnSet = new ColumnSet("adx_name", "adx_registerstartupscript", "adx_webform"),
-                    Orders = { new OrderExpression("adx_name", OrderType.Ascending) },
-                    LinkEntities =
-                {
-                    new LinkEntity
+                    records = service.RetrieveMultiple(new QueryExpression("adx_webformstep")
                     {
-                        LinkFromEntityName = "adx_webformstep",
-                        LinkFromAttributeName = "adx_webform",
-                        LinkToAttributeName = "adx_webformid",
-                        LinkToEntityName = "adx_webform",
-                        Columns = new ColumnSet("adx_websiteid"),
-                        EntityAlias = "webform"
-                    }
+                        ColumnSet = new ColumnSet("adx_name", "adx_registerstartupscript", "adx_webform"),
+                        Criteria = {
+                            Conditions = {
+                                new ConditionExpression("modifiedby", ConditionOperator.Equal, callingUserId)
+                            }
+                        },
+                        Orders = { new OrderExpression("adx_name", OrderType.Ascending) },
+                        LinkEntities =
+                        {
+                            new LinkEntity
+                            {
+                                LinkFromEntityName = "adx_webformstep",
+                                LinkFromAttributeName = "adx_webform",
+                                LinkToAttributeName = "adx_webformid",
+                                LinkToEntityName = "adx_webform",
+                                Columns = new ColumnSet("adx_websiteid"),
+                                EntityAlias = "webform"
+                            }
+                        }
+                    }).Entities;
                 }
-                }).Entities;
-
+                else
+                {
+                    records = service.RetrieveMultiple(new QueryExpression("adx_webformstep")
+                    {
+                        ColumnSet = new ColumnSet("adx_name", "adx_registerstartupscript", "adx_webform"),
+                        Orders = { new OrderExpression("adx_name", OrderType.Ascending) },
+                        LinkEntities =
+                        {
+                            new LinkEntity
+                            {
+                                LinkFromEntityName = "adx_webformstep",
+                                LinkFromAttributeName = "adx_webform",
+                                LinkToAttributeName = "adx_webformid",
+                                LinkToEntityName = "adx_webform",
+                                Columns = new ColumnSet("adx_websiteid"),
+                                EntityAlias = "webform"
+                            }
+                        }
+                    }).Entities;
+                }
+                
                 return records.Select(record => new WebFormStep(record)).ToList();
             }
             catch (FaultException<OrganizationServiceFault> ex)
             {
                 if (ex.Detail.ErrorCode == -2147217149)
                 {
-                    var records = service.RetrieveMultiple(new QueryExpression("adx_webformstep")
+                    DataCollection<Entity> records;
+                    if (onlyRetrieveItemsModifiedByMe)
                     {
-                        ColumnSet = new ColumnSet("adx_name", "adx_registerstartupscript", "adx_webform"),
-                        Orders = { new OrderExpression("adx_name", OrderType.Ascending) }
-                    }).Entities;
-
+                        records = service.RetrieveMultiple(new QueryExpression("adx_webformstep")
+                        {
+                            ColumnSet = new ColumnSet("adx_name", "adx_registerstartupscript", "adx_webform"),
+                            Criteria = {
+                            Conditions = {
+                                new ConditionExpression("modifiedby", ConditionOperator.Equal, callingUserId)
+                                }
+                            },
+                            Orders = { new OrderExpression("adx_name", OrderType.Ascending) }
+                        }).Entities;
+                    } 
+                    else
+                    {
+                        records = service.RetrieveMultiple(new QueryExpression("adx_webformstep")
+                        {
+                            ColumnSet = new ColumnSet("adx_name", "adx_registerstartupscript", "adx_webform"),
+                            Orders = { new OrderExpression("adx_name", OrderType.Ascending) }
+                        }).Entities;
+                    }
+                    
                     return records.Select(record => new WebFormStep(record)).ToList();
                 }
                 throw;
@@ -125,11 +171,11 @@ namespace MscrmTools.PortalCodeEditor.AppCode
         /// Write the contents of the code object to disk
         /// </summary>
         /// <param name="path"></param>
-        public override void WriteContent(string path)
+        public override void WriteContent(string path, bool replaceExisting)
         {
             var filePath = Path.Combine(path, $"JavaScript.js");
 
-            JavaScript?.WriteCodeItem(filePath);
+            JavaScript?.WriteCodeItem(filePath, replaceExisting);
         }
 
         #endregion Methods

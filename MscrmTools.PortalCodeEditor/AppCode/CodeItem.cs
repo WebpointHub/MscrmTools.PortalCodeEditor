@@ -1,10 +1,10 @@
-﻿using Microsoft.Xrm.Sdk;
-using System;
+﻿using System;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using Microsoft.Xrm.Sdk;
 
 namespace MscrmTools.PortalCodeEditor.AppCode
 {
@@ -156,7 +156,7 @@ namespace MscrmTools.PortalCodeEditor.AppCode
         /// </summary>
         /// <param name="path"></param>
         /// <param name="code"></param>
-        public void WriteCodeItem(string filePath)
+        public void WriteCodeItem(string filePath, bool replaceExisting)
         {
             string content = null;
             if (IsEncoded)
@@ -183,10 +183,19 @@ namespace MscrmTools.PortalCodeEditor.AppCode
                     var fileName = Path.GetFileNameWithoutExtension(filePath);
                     var ext = Path.GetExtension(filePath);
 
-                    var counter = 1;
-                    while (File.Exists(filePath)) {
-                        filePath = Path.Combine(rootpath, $"{fileName} ({counter++})");
+                    if (replaceExisting && File.Exists(filePath))
+                    {
+                        File.Delete(filePath);
+                    } 
+                    else
+                    {
+                        var counter = 1;
+                        while (File.Exists(filePath))
+                        {
+                            filePath = Path.Combine(rootpath, $"{fileName} ({counter++})");
+                        }
                     }
+                    
                 }
                 // now write file to disk
                 File.WriteAllText(filePath, content);

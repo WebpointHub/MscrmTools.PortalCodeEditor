@@ -1,7 +1,7 @@
-﻿using Microsoft.Xrm.Sdk;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.Xrm.Sdk;
 
 namespace MscrmTools.PortalCodeEditor.AppCode
 {
@@ -83,7 +83,7 @@ namespace MscrmTools.PortalCodeEditor.AppCode
         /// Write the contents of the code object to disk
         /// </summary>
         /// <param name="path">Path to which the content will be written</param>
-        public abstract void WriteContent(string path);
+        public abstract void WriteContent(string path, bool replaceExisting);
 
         #endregion Methods
     }

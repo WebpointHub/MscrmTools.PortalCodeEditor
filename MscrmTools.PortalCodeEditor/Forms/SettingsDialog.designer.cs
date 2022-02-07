@@ -36,27 +36,37 @@
             this.chkForceUpdate = new System.Windows.Forms.CheckBox();
             this.tcMain = new System.Windows.Forms.TabControl();
             this.tpGeneral = new System.Windows.Forms.TabPage();
+            this.tpExport = new System.Windows.Forms.TabPage();
+            this.label4 = new System.Windows.Forms.Label();
+            this.chkDoNotPackageExportInWebsiteFolder = new System.Windows.Forms.CheckBox();
+            this.chkOnlyExportItemsModifiedByMe = new System.Windows.Forms.CheckBox();
+            this.btnChooseExportFolder = new System.Windows.Forms.Button();
+            this.txtDefaultExportLocation = new System.Windows.Forms.TextBox();
+            this.lblDefaultExportLocation = new System.Windows.Forms.Label();
             this.tpMinifying = new System.Windows.Forms.TabPage();
             this.chkStyleRemoveComments = new System.Windows.Forms.CheckBox();
             this.chkObfuscateJavaScript = new System.Windows.Forms.CheckBox();
             this.tpColors = new System.Windows.Forms.TabPage();
+            this.label3 = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
+            this.pnlLiquidObject = new System.Windows.Forms.Panel();
+            this.lblLiquidObjectSample = new System.Windows.Forms.Label();
+            this.pnlLiquidTag = new System.Windows.Forms.Panel();
+            this.lblLiquidTagSample = new System.Windows.Forms.Label();
             this.btnLiquidObject = new System.Windows.Forms.Button();
             this.btnLiquidTag = new System.Windows.Forms.Button();
             this.colorDialog = new System.Windows.Forms.ColorDialog();
-            this.pnlLiquidTag = new System.Windows.Forms.Panel();
-            this.lblLiquidTagSample = new System.Windows.Forms.Label();
-            this.pnlLiquidObject = new System.Windows.Forms.Panel();
-            this.lblLiquidObjectSample = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
-            this.label3 = new System.Windows.Forms.Label();
+            this.fldrBrowser = new System.Windows.Forms.FolderBrowserDialog();
+            this.chkReplaceExistingFiles = new System.Windows.Forms.CheckBox();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.tcMain.SuspendLayout();
             this.tpGeneral.SuspendLayout();
+            this.tpExport.SuspendLayout();
             this.tpMinifying.SuspendLayout();
             this.tpColors.SuspendLayout();
-            this.pnlLiquidTag.SuspendLayout();
             this.pnlLiquidObject.SuspendLayout();
+            this.pnlLiquidTag.SuspendLayout();
             this.SuspendLayout();
             // 
             // panel1
@@ -122,12 +132,13 @@
             this.chkForceUpdate.Size = new System.Drawing.Size(445, 17);
             this.chkForceUpdate.TabIndex = 16;
             this.chkForceUpdate.Text = "Force records update even if it has changed since its last load (ie. RowVersion m" +
-                                       "ismatch)";
+    "ismatch)";
             this.chkForceUpdate.UseVisualStyleBackColor = true;
             // 
             // tcMain
             // 
             this.tcMain.Controls.Add(this.tpGeneral);
+            this.tcMain.Controls.Add(this.tpExport);
             this.tcMain.Controls.Add(this.tpMinifying);
             this.tcMain.Controls.Add(this.tpColors);
             this.tcMain.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -149,6 +160,77 @@
             this.tpGeneral.TabIndex = 0;
             this.tpGeneral.Text = "General";
             this.tpGeneral.UseVisualStyleBackColor = true;
+            // 
+            // tpExport
+            // 
+            this.tpExport.Controls.Add(this.chkReplaceExistingFiles);
+            this.tpExport.Controls.Add(this.label4);
+            this.tpExport.Controls.Add(this.chkDoNotPackageExportInWebsiteFolder);
+            this.tpExport.Controls.Add(this.chkOnlyExportItemsModifiedByMe);
+            this.tpExport.Controls.Add(this.btnChooseExportFolder);
+            this.tpExport.Controls.Add(this.txtDefaultExportLocation);
+            this.tpExport.Controls.Add(this.lblDefaultExportLocation);
+            this.tpExport.Location = new System.Drawing.Point(4, 22);
+            this.tpExport.Name = "tpExport";
+            this.tpExport.Size = new System.Drawing.Size(497, 140);
+            this.tpExport.TabIndex = 3;
+            this.tpExport.Text = "Export";
+            this.tpExport.UseVisualStyleBackColor = true;
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(42, 78);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(307, 13);
+            this.label4.TabIndex = 5;
+            this.label4.Text = "(Only use this setting when targeted environment has 1 website)";
+            // 
+            // chkDoNotPackageExportInWebsiteFolder
+            // 
+            this.chkDoNotPackageExportInWebsiteFolder.AutoSize = true;
+            this.chkDoNotPackageExportInWebsiteFolder.Location = new System.Drawing.Point(13, 58);
+            this.chkDoNotPackageExportInWebsiteFolder.Name = "chkDoNotPackageExportInWebsiteFolder";
+            this.chkDoNotPackageExportInWebsiteFolder.Size = new System.Drawing.Size(214, 17);
+            this.chkDoNotPackageExportInWebsiteFolder.TabIndex = 4;
+            this.chkDoNotPackageExportInWebsiteFolder.Text = "Do not package export in website folder";
+            this.chkDoNotPackageExportInWebsiteFolder.UseVisualStyleBackColor = true;
+            // 
+            // chkOnlyExportItemsModifiedByMe
+            // 
+            this.chkOnlyExportItemsModifiedByMe.AutoSize = true;
+            this.chkOnlyExportItemsModifiedByMe.Location = new System.Drawing.Point(13, 35);
+            this.chkOnlyExportItemsModifiedByMe.Name = "chkOnlyExportItemsModifiedByMe";
+            this.chkOnlyExportItemsModifiedByMe.Size = new System.Drawing.Size(179, 17);
+            this.chkOnlyExportItemsModifiedByMe.TabIndex = 3;
+            this.chkOnlyExportItemsModifiedByMe.Text = "Only export items modified by me";
+            this.chkOnlyExportItemsModifiedByMe.UseVisualStyleBackColor = true;
+            // 
+            // btnChooseExportFolder
+            // 
+            this.btnChooseExportFolder.Location = new System.Drawing.Point(462, 8);
+            this.btnChooseExportFolder.Name = "btnChooseExportFolder";
+            this.btnChooseExportFolder.Size = new System.Drawing.Size(24, 22);
+            this.btnChooseExportFolder.TabIndex = 2;
+            this.btnChooseExportFolder.Text = "..";
+            this.btnChooseExportFolder.UseVisualStyleBackColor = true;
+            this.btnChooseExportFolder.Click += new System.EventHandler(this.btnChooseExportFolder_Click);
+            // 
+            // txtDefaultExportLocation
+            // 
+            this.txtDefaultExportLocation.Location = new System.Drawing.Point(137, 9);
+            this.txtDefaultExportLocation.Name = "txtDefaultExportLocation";
+            this.txtDefaultExportLocation.Size = new System.Drawing.Size(319, 20);
+            this.txtDefaultExportLocation.TabIndex = 1;
+            // 
+            // lblDefaultExportLocation
+            // 
+            this.lblDefaultExportLocation.AutoSize = true;
+            this.lblDefaultExportLocation.Location = new System.Drawing.Point(10, 12);
+            this.lblDefaultExportLocation.Name = "lblDefaultExportLocation";
+            this.lblDefaultExportLocation.Size = new System.Drawing.Size(121, 13);
+            this.lblDefaultExportLocation.TabIndex = 0;
+            this.lblDefaultExportLocation.Text = "Default Export Location:";
             // 
             // tpMinifying
             // 
@@ -201,6 +283,66 @@
             this.tpColors.Text = "Colors";
             this.tpColors.UseVisualStyleBackColor = true;
             // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(8, 44);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(156, 13);
+            this.label3.TabIndex = 7;
+            this.label3.Text = "Liquid Objects highlighting color";
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(8, 15);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(139, 13);
+            this.label2.TabIndex = 6;
+            this.label2.Text = "Liquid Tag highlighting color";
+            // 
+            // pnlLiquidObject
+            // 
+            this.pnlLiquidObject.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pnlLiquidObject.Controls.Add(this.lblLiquidObjectSample);
+            this.pnlLiquidObject.Location = new System.Drawing.Point(231, 37);
+            this.pnlLiquidObject.Name = "pnlLiquidObject";
+            this.pnlLiquidObject.Size = new System.Drawing.Size(227, 23);
+            this.pnlLiquidObject.TabIndex = 5;
+            // 
+            // lblLiquidObjectSample
+            // 
+            this.lblLiquidObjectSample.AutoSize = true;
+            this.lblLiquidObjectSample.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.lblLiquidObjectSample.Font = new System.Drawing.Font("Consolas", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblLiquidObjectSample.Location = new System.Drawing.Point(0, 0);
+            this.lblLiquidObjectSample.Name = "lblLiquidObjectSample";
+            this.lblLiquidObjectSample.Padding = new System.Windows.Forms.Padding(0, 2, 0, 0);
+            this.lblLiquidObjectSample.Size = new System.Drawing.Size(88, 19);
+            this.lblLiquidObjectSample.TabIndex = 0;
+            this.lblLiquidObjectSample.Text = "{{ type }}";
+            // 
+            // pnlLiquidTag
+            // 
+            this.pnlLiquidTag.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pnlLiquidTag.Controls.Add(this.lblLiquidTagSample);
+            this.pnlLiquidTag.Location = new System.Drawing.Point(231, 8);
+            this.pnlLiquidTag.Name = "pnlLiquidTag";
+            this.pnlLiquidTag.Size = new System.Drawing.Size(227, 23);
+            this.pnlLiquidTag.TabIndex = 4;
+            // 
+            // lblLiquidTagSample
+            // 
+            this.lblLiquidTagSample.AutoSize = true;
+            this.lblLiquidTagSample.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.lblLiquidTagSample.Font = new System.Drawing.Font("Consolas", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblLiquidTagSample.Location = new System.Drawing.Point(0, 0);
+            this.lblLiquidTagSample.Name = "lblLiquidTagSample";
+            this.lblLiquidTagSample.Padding = new System.Windows.Forms.Padding(0, 2, 0, 0);
+            this.lblLiquidTagSample.Size = new System.Drawing.Size(224, 19);
+            this.lblLiquidTagSample.TabIndex = 0;
+            this.lblLiquidTagSample.Text = "{% if type = \"LiquidTag\" %}";
+            // 
             // btnLiquidObject
             // 
             this.btnLiquidObject.Location = new System.Drawing.Point(464, 39);
@@ -225,65 +367,15 @@
             // 
             this.colorDialog.AnyColor = true;
             // 
-            // pnlLiquidTag
+            // chkReplaceExistingFiles
             // 
-            this.pnlLiquidTag.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pnlLiquidTag.Controls.Add(this.lblLiquidTagSample);
-            this.pnlLiquidTag.Location = new System.Drawing.Point(231, 8);
-            this.pnlLiquidTag.Name = "pnlLiquidTag";
-            this.pnlLiquidTag.Size = new System.Drawing.Size(227, 23);
-            this.pnlLiquidTag.TabIndex = 4;
-            // 
-            // lblLiquidTagSample
-            // 
-            this.lblLiquidTagSample.AutoSize = true;
-            this.lblLiquidTagSample.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.lblLiquidTagSample.Font = new System.Drawing.Font("Consolas", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblLiquidTagSample.Location = new System.Drawing.Point(0, 0);
-            this.lblLiquidTagSample.Name = "lblLiquidTagSample";
-            this.lblLiquidTagSample.Padding = new System.Windows.Forms.Padding(0, 2, 0, 0);
-            this.lblLiquidTagSample.Size = new System.Drawing.Size(224, 19);
-            this.lblLiquidTagSample.TabIndex = 0;
-            this.lblLiquidTagSample.Text = "{% if type = \"LiquidTag\" %}";
-            // 
-            // pnlLiquidObject
-            // 
-            this.pnlLiquidObject.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pnlLiquidObject.Controls.Add(this.lblLiquidObjectSample);
-            this.pnlLiquidObject.Location = new System.Drawing.Point(231, 37);
-            this.pnlLiquidObject.Name = "pnlLiquidObject";
-            this.pnlLiquidObject.Size = new System.Drawing.Size(227, 23);
-            this.pnlLiquidObject.TabIndex = 5;
-            // 
-            // lblLiquidObjectSample
-            // 
-            this.lblLiquidObjectSample.AutoSize = true;
-            this.lblLiquidObjectSample.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.lblLiquidObjectSample.Font = new System.Drawing.Font("Consolas", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblLiquidObjectSample.Location = new System.Drawing.Point(0, 0);
-            this.lblLiquidObjectSample.Name = "lblLiquidObjectSample";
-            this.lblLiquidObjectSample.Padding = new System.Windows.Forms.Padding(0, 2, 0, 0);
-            this.lblLiquidObjectSample.Size = new System.Drawing.Size(88, 19);
-            this.lblLiquidObjectSample.TabIndex = 0;
-            this.lblLiquidObjectSample.Text = "{{ type }}";
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(8, 15);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(139, 13);
-            this.label2.TabIndex = 6;
-            this.label2.Text = "Liquid Tag highlighting color";
-            // 
-            // label3
-            // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(8, 44);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(156, 13);
-            this.label3.TabIndex = 7;
-            this.label3.Text = "Liquid Objects highlighting color";
+            this.chkReplaceExistingFiles.AutoSize = true;
+            this.chkReplaceExistingFiles.Location = new System.Drawing.Point(13, 98);
+            this.chkReplaceExistingFiles.Name = "chkReplaceExistingFiles";
+            this.chkReplaceExistingFiles.Size = new System.Drawing.Size(129, 17);
+            this.chkReplaceExistingFiles.TabIndex = 6;
+            this.chkReplaceExistingFiles.Text = "Replace Existing Files";
+            this.chkReplaceExistingFiles.UseVisualStyleBackColor = true;
             // 
             // SettingsDialog
             // 
@@ -304,14 +396,16 @@
             this.tcMain.ResumeLayout(false);
             this.tpGeneral.ResumeLayout(false);
             this.tpGeneral.PerformLayout();
+            this.tpExport.ResumeLayout(false);
+            this.tpExport.PerformLayout();
             this.tpMinifying.ResumeLayout(false);
             this.tpMinifying.PerformLayout();
             this.tpColors.ResumeLayout(false);
             this.tpColors.PerformLayout();
-            this.pnlLiquidTag.ResumeLayout(false);
-            this.pnlLiquidTag.PerformLayout();
             this.pnlLiquidObject.ResumeLayout(false);
             this.pnlLiquidObject.PerformLayout();
+            this.pnlLiquidTag.ResumeLayout(false);
+            this.pnlLiquidTag.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -339,5 +433,14 @@
         private System.Windows.Forms.Label lblLiquidTagSample;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.TabPage tpExport;
+        private System.Windows.Forms.TextBox txtDefaultExportLocation;
+        private System.Windows.Forms.Label lblDefaultExportLocation;
+        private System.Windows.Forms.FolderBrowserDialog fldrBrowser;
+        private System.Windows.Forms.CheckBox chkDoNotPackageExportInWebsiteFolder;
+        private System.Windows.Forms.CheckBox chkOnlyExportItemsModifiedByMe;
+        private System.Windows.Forms.Button btnChooseExportFolder;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.CheckBox chkReplaceExistingFiles;
     }
 }
